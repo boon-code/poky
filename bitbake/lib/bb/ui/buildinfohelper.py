@@ -340,6 +340,11 @@ class ORMWrapper(object):
         if built_recipe is None:
             return recipe
 
+        if built_recipe is None:
+            built_recipe, c = self._cached_get_or_create(Recipe,
+                    layer_version=built_layer,
+                    file_path=recipe_information['file_path'],
+                    pathflags = recipe_information['pathflags'])
         return built_recipe
 
     def get_update_layer_version_object(self, build_obj, layer_obj, layer_version_information):
@@ -423,23 +428,24 @@ class ORMWrapper(object):
                 if not localdirname.startswith("/"):
                     localdirname = os.path.join(bc.be.sourcedir, localdirname)
                 #logger.debug(1, "Localdirname %s lcal_path %s" % (localdirname, layer_information['local_path']))
-                if localdirname.startswith(layer_information['local_path']):
+                if localdirname.startswith(layer_information['local_path']) or os.path.exists(layer_information['local_path']):
                   # If the build request came from toaster this field
                   # should contain the information from the layer_version
                   # That created this build request.
-                    if brl.layer_version:
+                    if (layer_information['name'] == brl.name) and (brl.layer_version):
                         return brl.layer_version
 
                     # we matched the BRLayer, but we need the layer_version that generated this BR; reverse of the Project.schedule_build()
                     #logger.debug(1, "Matched %s to BRlayer %s" % (pformat(layer_information["local_path"]), localdirname))
 
-                    for pl in buildrequest.project.projectlayer_set.filter(layercommit__layer__name = brl.name):
+                    for pl in buildrequest.project.projectlayer_set.filter(layercommit__layer__name = layer_information['name']):
                         if pl.layercommit.layer.vcs_url == brl.giturl :
                             layer = pl.layercommit.layer
                             layer.save()
                             return layer
 
-            raise NotExisting("Unidentified layer %s" % pformat(layer_information))
+            if os.path.exists(localdirname) == False and os.path.exists(layer_information['local_path']) == False:
+               raise NotExisting("Unidentified layer %s" % pformat(layer_information))
 
 
     def save_target_file_information(self, build_obj, target_obj, filedata):
