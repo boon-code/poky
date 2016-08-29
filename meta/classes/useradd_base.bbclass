@@ -17,7 +17,7 @@ perform_groupadd () {
 	local groupname=`echo "$opts" | awk '{ print $NF }'`
 	local group_exists="`grep "^$groupname:" $rootdir/etc/group || true`"
 	if test "x$group_exists" = "x"; then
-		eval flock -x $rootdir${sysconfdir} -c \"$PSEUDO groupadd \$opts\" || true
+                eval "flock -x $rootdir${sysconfdir} -c \"\$PSEUDO groupadd \$opts\"" || true
 		group_exists="`grep "^$groupname:" $rootdir/etc/group || true`"
 		if test "x$group_exists" = "x"; then
 			bbfatal "${PN}: groupadd command did not succeed."
@@ -34,7 +34,7 @@ perform_useradd () {
 	local username=`echo "$opts" | awk '{ print $NF }'`
 	local user_exists="`grep "^$username:" $rootdir/etc/passwd || true`"
 	if test "x$user_exists" = "x"; then
-		eval flock -x $rootdir${sysconfdir} -c  \"$PSEUDO useradd \$opts\" || true
+                eval "flock -x $rootdir${sysconfdir} -c \"\$PSEUDO useradd \$opts\"" || true
 		user_exists="`grep "^$username:" $rootdir/etc/passwd || true`"
 		if test "x$user_exists" = "x"; then
 			bbfatal "${PN}: useradd command did not succeed."
@@ -136,7 +136,7 @@ perform_usermod () {
 	local username=`echo "$opts" | awk '{ print $NF }'`
 	local user_exists="`grep "^$username:" $rootdir/etc/passwd || true`"
 	if test "x$user_exists" != "x"; then
-		eval flock -x $rootdir${sysconfdir} -c \"$PSEUDO usermod \$opts\"
+                eval "flock -x $rootdir${sysconfdir} -c \"\$PSEUDO usermod \$opts\""
 		if test $? != 0; then
 			bbfatal "${PN}: usermod command did not succeed."
 		fi
